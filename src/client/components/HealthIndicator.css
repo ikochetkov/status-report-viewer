@@ -1,0 +1,28 @@
+.health-indicator {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  min-width: 60px;
+}
+
+.health-indicator.green {
+  background-color: #0f9d58;
+  color: white;
+}
+
+.health-indicator.yellow {
+  background-color: #f0ab00;
+  color: #2e3338;
+}
+
+.health-indicator.red {
+  background-color: #da1e28;
+  color: white;
+}
+
+.health-indicator.empty {
+  background-color: var(--muted);
+  color: var(--muted-foreground);
+}
