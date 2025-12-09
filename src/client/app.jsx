@@ -3,6 +3,8 @@ import { StatusReportsTable } from './components/StatusReportsTable.jsx';
 import { StatusFilters } from './components/StatusFilters.jsx';
 import './app.css';
 
+const HelloWorld = () => <h1 style={{ padding: '20px', backgroundColor: '#f0f0f0' }}>Hello World</h1>;
+
 // Convert hardcoded data to match the new interface structure
 const transformedData = [
   {
@@ -187,11 +189,46 @@ export default function App() {
   const [selectedManager, setSelectedManager] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
 
-  // Get unique values for filters
-  const weeks = useMemo(() => 
-    Array.from(new Set(transformedData.map(p => p.week))).sort().reverse(),
-    []
-  );
+  // Generate weeks from December to today
+  const generateWeeks = () => {
+    const weeks = [];
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    
+    // Start from December 1st of current year
+    let weekStart = new Date(currentYear, 11, 1); // December 1st
+    
+    // Adjust to Monday if December 1st is not a Monday
+    const day = weekStart.getDay();
+    const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1); // Adjust to Monday
+    weekStart = new Date(weekStart.setDate(diff));
+    
+    let weekNumber = 1;
+    
+    // Generate weeks until today
+    while (weekStart <= currentDate) {
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6); // Add 6 days to get Sunday
+      
+      const startStr = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const endStr = weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const displayLabel = `Week ${weekNumber} (${startStr} - ${endStr})`;
+      const valueDate = weekStart.toISOString().split('T')[0]; // YYYY-MM-DD format
+      
+      weeks.push({
+        label: displayLabel,
+        value: valueDate
+      });
+      
+      // Move to next week (Monday)
+      weekStart.setDate(weekStart.getDate() + 7);
+      weekNumber++;
+    }
+    
+    return weeks;
+  };
+
+  const weeks = useMemo(() => generateWeeks(), []);
   
   const projectManagers = useMemo(() => 
     Array.from(new Set(transformedData.map(p => p.projectManager))).sort(),
@@ -211,7 +248,24 @@ export default function App() {
   // Filter projects based on selections
   const filteredProjects = useMemo(() => {
     return transformedData.filter(project => {
-      if (selectedWeek !== 'all' && project.week !== selectedWeek) return false;
+      if (selectedWeek !== 'all') {
+        // Convert selectedWeek (YYYY-MM-DD format) back to week number for comparison
+        const selectedDate = new Date(selectedWeek);
+        const selectedYear = selectedDate.getFullYear();
+        const selectedMonth = selectedDate.getMonth();
+        const selectedDay = selectedDate.getDate();
+        
+        // Calculate week number from the date
+        const decemberFirst = new Date(selectedYear, 11, 1);
+        const day = decemberFirst.getDay();
+        const decStart = new Date(decemberFirst.setDate(1 - day + (day === 0 ? -6 : 1)));
+        
+        const timeDiff = selectedDate - decStart;
+        const weekNum = Math.floor(timeDiff / (7 * 24 * 60 * 60 * 1000)) + 1;
+        const expectedWeekLabel = `Week ${weekNum}`;
+        
+        if (!project.week.includes(expectedWeekLabel)) return false;
+      }
       if (selectedProject !== 'all' && project.projectNumber !== selectedProject) return false;
       if (selectedManager !== 'all' && project.projectManager !== selectedManager) return false;
       if (selectedType !== 'all' && project.projectType !== selectedType) return false;
@@ -221,6 +275,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-background">
+      <HelloWorld />
       <div className="container mx-auto p-8 max-w-[1400px]">
         <div className="mb-8">
           <h1 className="text-foreground mb-2">Project Status Reports</h1>

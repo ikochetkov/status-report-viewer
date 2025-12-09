@@ -30,7 +30,7 @@ export function StatusFilters({
             <SelectContent>
               <SelectItem value="all">All Weeks</SelectItem>
               {weeks.map(week => (
-                <SelectItem key={week} value={week}>{week}</SelectItem>
+                <SelectItem key={week.value} value={week.value}>{week.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
